@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, < 100 chars)
+    //   - description: string (optional, < 1000 chars)
+    //   - price: number (required, > 0)
+    //   - category: string (required, < 50 chars)
+    //   - imageUrl: string (required, < 500 chars)
+    //   - isBestSeller: boolean (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: categories
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, < 50 chars)
+    //   - slug: string (required, < 50 chars)
+    //   - imageUrl: string (required, < 500 chars)
+    //
+    // Collection: users
+    // Document ID: user UID
+    // Fields:
+    //   - email: string (required)
+    //   - role: string (required, 'admin' or 'customer')
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "alkillany0000@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+    
+    function hasOnlyAllowedFields(allowedFields) {
+      return request.resource.data.keys().hasOnly(allowedFields);
+    }
+    
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+    
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) || isValidString(field, minLen, maxLen);
+    }
+    
+    function isValidNumber(field, minVal) {
+      return request.resource.data[field] is number && request.resource.data[field] >= minVal;
+    }
+    
+    function isValidBoolean(field) {
+      return !(field in request.resource.data) || request.resource.data[field] is bool;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    
+    function isValidProduct() {
+      return hasOnlyAllowedFields(['title', 'description', 'price', 'category', 'imageUrl', 'isBestSeller', 'createdAt']) &&
+             isValidString('title', 1, 100) &&
+             isValidOptionalString('description', 0, 1000) &&
+             isValidNumber('price', 0) &&
+             isValidString('category', 1, 50) &&
+             isValidString('imageUrl', 1, 500) &&
+             isValidBoolean('isBestSeller') &&
+             (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp);
+    }
+    
+    function isValidCategory() {
+      return hasOnlyAllowedFields(['name', 'slug', 'imageUrl']) &&
+             isValidString('name', 1, 50) &&
+             isValidString('slug', 1, 50) &&
+             isValidString('imageUrl', 1, 500);
+    }
+
+    function isValidUser() {
+      return hasOnlyAllowedFields(['email', 'role']) &&
+             isValidString('email', 5, 100) &&
+             request.resource.data.role in ['admin', 'customer'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidProduct();
+      allow update: if isAdmin() && isValidProduct();
+      allow delete: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidCategory();
+      allow update: if isAdmin() && isValidCategory();
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId && isValidUser() && (request.resource.data.role == 'customer' || isAdmin());
+      allow update: if isAuthenticated() && request.auth.uid == userId && isValidUser() && (request.resource.data.role == resource.data.role || isAdmin());
+      allow delete: if isAdmin();
+    }
+  }
+}

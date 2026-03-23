@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&family=Aref+Ruqaa:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-alexandria: "Alexandria", sans-serif;
+  --font-almarai: "Almarai", sans-serif;
+  --font-reqaa: "Aref Ruqaa", serif;
+
+  --color-brand-pink: #D88A9A;
+  --color-brand-pink-dark: #C07080;
+  --color-brand-dark: #3E2723;
+  --color-brand-cream: #F8F6F0;
+  --color-brand-brown: #6D4C41;
+  --color-brand-light-brown: #D7CCC8;
+}
+
+body {
+  font-family: var(--font-alexandria);
+  background-color: var(--color-brand-cream);
+  color: var(--color-brand-dark);
+  direction: rtl;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-almarai);
+}
+
+.font-reqaa {
+  font-family: var(--font-reqaa);
+}
+
+.font-almarai {
+  font-family: var(--font-almarai);
+}
+
+.font-alexandria {
+  font-family: var(--font-alexandria);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-brand-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-pink);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-pink-dark);
+}

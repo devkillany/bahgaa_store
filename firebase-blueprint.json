@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A product available in the store.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The name of the product." },
+        "description": { "type": "string", "description": "A detailed description of the product." },
+        "price": { "type": "number", "description": "The price of the product in EGP." },
+        "category": { "type": "string", "description": "The category slug this product belongs to." },
+        "imageUrl": { "type": "string", "description": "The URL of the product image." },
+        "isBestSeller": { "type": "boolean", "description": "Whether this product is a best seller." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the product was added." }
+      },
+      "required": ["title", "price", "category", "imageUrl"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "A product category.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The display name of the category." },
+        "slug": { "type": "string", "description": "The URL-friendly slug of the category." },
+        "imageUrl": { "type": "string", "description": "The URL of the category image." }
+      },
+      "required": ["name", "slug", "imageUrl"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "customer"] }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Store products."
+    },
+    "categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Store categories."
+    },
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and roles."
+    }
+  }
+}
